@@ -7,7 +7,7 @@ _engine = None
 def _get_engine():
     global _engine
     if _engine is None:
-        from tecs_rs import RustEngine
+        from tecs.tecs_rs import RustEngine
         _engine = RustEngine()
     return _engine
 

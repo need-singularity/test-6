@@ -1,0 +1,25 @@
+{
+  "id": "hyp_20260321_43838d",
+  "hypothesis": "h1",
+  "explanation": "e",
+  "confidence": 0.5,
+  "involved_entities": [
+    "Q1"
+  ],
+  "topological_basis": {
+    "predicted": {
+      "beta0": 1,
+      "beta1": 3
+    },
+    "actual": {
+      "beta0": 1,
+      "beta1": 47
+    },
+    "clash_type": "beta1_mismatch",
+    "clash_gap": 44
+  },
+  "evaluation": {},
+  "novelty": {},
+  "testable_prediction": "t",
+  "natural_language": "엔티티 [Q1]의 서브그래프 분석 결과:\n  beta1: 예측=3, 실제=47 (차이=44)\n가설: h1\n확신도: 0.50"
+}

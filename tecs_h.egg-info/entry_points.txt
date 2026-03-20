@@ -1,0 +1,2 @@
+[console_scripts]
+tecs-h = tecs_h.cli:main

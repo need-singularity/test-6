@@ -32,10 +32,11 @@ def build_sparql_query(entities: list[str], hop: int = 1) -> str:
         LIMIT 1000
         """
     else:
+        # Use simpler property path to avoid Wikidata SPARQL endpoint rejections
         return f"""
         SELECT ?source ?prop ?target WHERE {{
             VALUES ?seed {{ {entity_values} }}
-            ?seed (wdt:P279|wdt:P31|wdt:P361|wdt:P527|wdt:P737|wdt:P101){{0,{hop}}} ?source .
+            ?seed (wdt:P279|wdt:P31|wdt:P361|wdt:P527|wdt:P737|wdt:P101)* ?source .
             ?source ?prop ?target .
             VALUES ?prop {{ {whitelist_filter} }}
             FILTER(STRSTARTS(STR(?target), "http://www.wikidata.org/entity/Q"))

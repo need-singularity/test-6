@@ -22,7 +22,9 @@ def extract_json(raw: str) -> dict:
 
     # Strategy 1: direct parse
     try:
-        return json.loads(raw)
+        parsed = json.loads(raw)
+        if isinstance(parsed, dict):
+            return parsed
     except json.JSONDecodeError:
         pass
 
@@ -30,7 +32,9 @@ def extract_json(raw: str) -> dict:
     match = re.search(r"```json\s*\n(.*?)\n\s*```", raw, re.DOTALL)
     if match:
         try:
-            return json.loads(match.group(1))
+            parsed = json.loads(match.group(1))
+            if isinstance(parsed, dict):
+                return parsed
         except json.JSONDecodeError:
             pass
 
