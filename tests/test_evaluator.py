@@ -95,3 +95,25 @@ class TestFilterNonTopo:
         ]
         result = filter_non_topo(sample_hypothesis, graph_stats={"avg_degree": 3.2})
         assert result["status"] == "pass"
+
+
+from tecs_h.evaluator.pipeline import evaluate
+
+
+class TestEvaluatePipeline:
+    def test_passes_all_filters(self, mocker, sample_hypothesis, sample_actual):
+        mocker.patch("tecs_h.evaluator.pipeline.filter_random", return_value={"status": "pass"})
+        mocker.patch("tecs_h.evaluator.pipeline.filter_scale", return_value={"status": "pass"})
+        mocker.patch("tecs_h.evaluator.pipeline.filter_non_topo", return_value={"status": "pass"})
+        result = evaluate(sample_hypothesis, sample_actual, ["Q1"], n_nodes=10, n_edges=15)
+        assert result["status"] == "passed"
+        assert result["filters_cleared"] == 3
+
+    def test_stops_at_first_rejection(self, mocker, sample_hypothesis, sample_actual):
+        mocker.patch("tecs_h.evaluator.pipeline.filter_random", return_value={"status": "reject", "reason": "random"})
+        mock_scale = mocker.patch("tecs_h.evaluator.pipeline.filter_scale")
+        mock_nontopo = mocker.patch("tecs_h.evaluator.pipeline.filter_non_topo")
+        result = evaluate(sample_hypothesis, sample_actual, ["Q1"], n_nodes=10, n_edges=15)
+        assert result["status"] == "rejected"
+        mock_scale.assert_not_called()
+        mock_nontopo.assert_not_called()
