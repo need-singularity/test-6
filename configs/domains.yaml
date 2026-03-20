@@ -1,0 +1,13 @@
+domains:
+  topology_basics:
+    description: "위상수학 기본 개념 간 관계"
+    seed_groups:
+      - entities: ["Q11348", "Q192439"]
+        hop: 2
+      - entities: ["Q1753656", "Q1322614"]
+        hop: 2
+  number_theory:
+    description: "수론 핵심 추측"
+    seed_groups:
+      - entities: ["Q131752", "Q200227"]
+        hop: 2
