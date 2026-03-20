@@ -64,3 +64,37 @@ class TestDetectClashes:
             assert "predicted" in c
             assert "actual" in c
             assert "gap" in c
+
+
+from tecs_h.collision.resolver import resolve, RESOLVER_PROMPT_TEMPLATE
+
+
+class TestResolve:
+    def test_returns_hypothesis_dict(self, mocker):
+        mock_claude = mocker.patch("tecs_h.collision.resolver.claude_call")
+        mock_claude.return_value = {
+            "hypothesis": "test hypothesis",
+            "explanation": "test explanation",
+            "testable_prediction": "test prediction",
+            "involved_entities": ["Q1", "Q2"],
+            "confidence": 0.7
+        }
+        clashes = [{"field": "beta1", "predicted": 3, "actual": 47, "gap": 44, "strength": "strong"}]
+        pred = {"beta0": 1, "beta1": 3}
+        actual = {"beta0": 1, "beta1": 47}
+        result = resolve(pred, actual, clashes)
+        assert "hypothesis" in result
+        assert "confidence" in result
+        assert "involved_entities" in result
+
+    def test_prompt_includes_clash_data(self, mocker):
+        mock_claude = mocker.patch("tecs_h.collision.resolver.claude_call")
+        mock_claude.return_value = {
+            "hypothesis": "h", "explanation": "e",
+            "testable_prediction": "t", "involved_entities": [], "confidence": 0.5
+        }
+        clashes = [{"field": "beta1", "predicted": 3, "actual": 47, "gap": 44, "strength": "strong"}]
+        resolve({"beta1": 3}, {"beta1": 47}, clashes)
+        prompt = mock_claude.call_args[0][0]
+        assert "47" in prompt
+        assert "3" in prompt
