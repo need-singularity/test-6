@@ -26,9 +26,28 @@ class TestRunCollisionRound:
         mocker.patch("tecs_h.loop.batch.resolve", return_value={
             "hypothesis": "test", "explanation": "test", "testable_prediction": "test", "involved_entities": ["Q1"], "confidence": 0.7
         })
+        mocker.patch("tecs_h.loop.batch.evaluate", return_value={"status": "passed"})
+        mocker.patch("tecs_h.loop.batch.filter_novelty", return_value={"status": "pass"})
         result = run_collision_round(["Q1", "Q2"], hop=2)
         assert result is not None
         assert "hypothesis" in result
+
+
+class TestRunCollisionRoundWithFilters:
+    def test_evaluator_rejection_skips_hypothesis(self, mocker):
+        mocker.patch("tecs_h.loop.batch.build_subgraph", return_value={
+            "edges": [(0, 1)], "n_nodes": 2, "nodes": ["Q1", "Q2"]
+        })
+        mocker.patch("tecs_h.loop.batch.predict", return_value={"beta0": 1, "beta1": 3, "hierarchy_score": 0.8, "max_persistence_h1": 0.5})
+        mocker.patch("tecs_h.loop.batch.compute_topology", return_value={"beta0": 1, "beta1": 47, "hierarchy_score": 0.3, "max_persistence_h1": 0.85, "long_h1": []})
+        mocker.patch("tecs_h.loop.batch.detect_clashes", return_value=[{"field": "beta1", "predicted": 3, "actual": 47, "gap": 44, "strength": "strong"}])
+        mocker.patch("tecs_h.loop.batch.resolve", return_value={
+            "hypothesis": "test", "explanation": "test", "testable_prediction": "test", "involved_entities": ["Q1"], "confidence": 0.7
+        })
+        mock_evaluate = mocker.patch("tecs_h.loop.batch.evaluate")
+        mock_evaluate.return_value = {"status": "rejected", "reason": "random baseline"}
+        result = run_collision_round(["Q1", "Q2"], hop=2)
+        assert result is None
 
 
 class TestRunBatch:

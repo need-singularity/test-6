@@ -8,6 +8,8 @@ from tecs_h.collision.clash import detect_clashes
 from tecs_h.collision.resolver import resolve
 from tecs_h.graph.builder import build_subgraph
 from tecs_h.output.formatter import format_hypothesis, save_result
+from tecs_h.evaluator.pipeline import evaluate
+from tecs_h.novelty.filter import filter_novelty
 
 logger = logging.getLogger("tecs_h.loop")
 
@@ -42,7 +44,25 @@ def run_collision_round(entities: list[str], hop: int = 2) -> dict | None:
         logger.info("No clash detected for %s, skipping", entities)
         return None
     hypothesis = resolve(prediction, actual, clashes)
-    return {"hypothesis": hypothesis, "prediction": prediction, "actual": actual, "clashes": clashes, "subgraph": subgraph}
+
+    # Evaluator 3-filter pipeline
+    eval_result = evaluate(
+        hypothesis=hypothesis, actual_topology=actual, entities=entities,
+        n_nodes=subgraph["n_nodes"], n_edges=len(subgraph["edges"]),
+        subgraph_edges=subgraph["edges"], original_hop=hop,
+    )
+    if eval_result["status"] == "rejected":
+        logger.info("Hypothesis rejected by evaluator: %s", eval_result.get("reason", ""))
+        return None
+
+    # Novelty filter
+    novelty_result = filter_novelty(hypothesis)
+    if novelty_result["status"] == "reject":
+        logger.info("Hypothesis rejected by novelty filter: %s", novelty_result.get("reason", ""))
+        return None
+
+    return {"hypothesis": hypothesis, "prediction": prediction, "actual": actual,
+            "clashes": clashes, "subgraph": subgraph, "evaluation": eval_result, "novelty": novelty_result}
 
 
 def run_batch(seed_groups: list[dict], rounds_per_group: int = 5, results_dir: str = "results") -> list[dict]:
@@ -60,6 +80,7 @@ def run_batch(seed_groups: list[dict], rounds_per_group: int = 5, results_dir: s
                 formatted = format_hypothesis(
                     hypothesis=result["hypothesis"], prediction=result["prediction"],
                     actual=result["actual"], clashes=result["clashes"],
+                    evaluation=result.get("evaluation"), novelty=result.get("novelty"),
                 )
                 save_result(formatted, base_dir=results_dir)
                 all_results.append(formatted)
