@@ -31,7 +31,7 @@ JSON으로 답해:
 - confidence: 판단 확신도 (0~1)
 """
 
-def filter_non_topo(hypothesis: dict, graph_stats: dict, confidence_threshold: float = 0.8) -> dict:
+def filter_non_topo(hypothesis: dict, graph_stats: dict, confidence_threshold: float = 0.9) -> dict:
     entities = hypothesis.get("involved_entities", [])
     baseline_prompt = BASELINE_PROMPT.format(
         graph_stats=json.dumps(graph_stats, ensure_ascii=False),

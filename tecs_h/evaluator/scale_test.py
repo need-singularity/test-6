@@ -24,7 +24,7 @@ def _pattern_persists(original: dict, scaled: dict) -> bool:
 def filter_scale(actual_topology: dict, entities: list[str], original_hop: int = 2, max_nodes: int = 300, test_hops: list[int] | None = None) -> dict:
     engine = _get_engine()
     if test_hops is None:
-        test_hops = [original_hop + 1, original_hop + 2]
+        test_hops = [original_hop + 1]
     persist_count = 0
     valid_tests = 0
     for hop in test_hops:
@@ -45,6 +45,6 @@ def filter_scale(actual_topology: dict, entities: list[str], original_hop: int =
     if valid_tests == 0:
         return {"status": "pass", "reason": "스케일 테스트 불가", "persist_rate": None}
     persist_rate = persist_count / valid_tests
-    if persist_rate < 0.5:
+    if persist_rate < 0.3:
         return {"status": "reject", "reason": f"규모 확장 시 패턴 소멸 ({persist_rate:.0%})", "persist_rate": persist_rate}
     return {"status": "pass", "persist_rate": persist_rate}

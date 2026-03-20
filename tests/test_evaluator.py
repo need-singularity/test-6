@@ -82,7 +82,7 @@ class TestFilterNonTopo:
         mock_claude = mocker.patch("tecs_h.evaluator.non_topo_baseline.llm_call")
         mock_claude.side_effect = [
             {"hypothesis": "basically the same thing"},
-            {"same_core_claim": True, "confidence": 0.85},
+            {"same_core_claim": True, "confidence": 0.95},
         ]
         result = filter_non_topo(sample_hypothesis, graph_stats={"avg_degree": 3.2})
         assert result["status"] == "reject"

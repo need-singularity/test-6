@@ -55,7 +55,7 @@ def _sparql_query(query: str) -> dict:
         SPARQL_ENDPOINT, params={"query": query}, headers=headers, timeout=60
     )
     response.raise_for_status()
-    time.sleep(1)  # rate limit
+    time.sleep(0.5)  # rate limit
     return response.json()
 
 
@@ -79,16 +79,32 @@ def build_subgraph(
 ) -> dict:
     """Build subgraph from Wikidata via SPARQL.
 
+    Uses iterative 1-hop BFS to avoid Wikidata timeout on complex property paths.
     Returns dict with nodes (list), edges (list of int tuples), n_nodes (int).
     Edges use integer indices for TECS-L compatibility.
     """
-    query = build_sparql_query(entities, hop=hop)
-    response = _sparql_query(query)
-    all_nodes, raw_edges = parse_sparql_response(response)
+    all_nodes = set(entities)
+    raw_edges = []
+    frontier = set(entities)
 
-    # Add seed entities even if no results
-    for e in entities:
-        all_nodes.add(e)
+    for _ in range(hop):
+        if not frontier or len(all_nodes) >= max_nodes:
+            break
+        query = build_sparql_query(list(frontier), hop=1)
+        try:
+            response = _sparql_query(query)
+        except Exception:
+            break
+        new_nodes, new_edges = parse_sparql_response(response)
+        raw_edges.extend(new_edges)
+        next_frontier = set()
+        for n in new_nodes:
+            if n not in all_nodes:
+                next_frontier.add(n)
+                all_nodes.add(n)
+                if len(all_nodes) >= max_nodes:
+                    break
+        frontier = next_frontier
 
     # Truncate to max_nodes
     node_list = list(all_nodes)[:max_nodes]
