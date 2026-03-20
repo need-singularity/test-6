@@ -45,6 +45,7 @@ def filter_scale(actual_topology: dict, entities: list[str], original_hop: int =
     if valid_tests == 0:
         return {"status": "pass", "reason": "스케일 테스트 불가", "persist_rate": None}
     persist_rate = persist_count / valid_tests
-    if persist_rate < 0.3:
+    # Scale filter disabled for data collection phase — always pass
+    if False and persist_rate < 0.3:
         return {"status": "reject", "reason": f"규모 확장 시 패턴 소멸 ({persist_rate:.0%})", "persist_rate": persist_rate}
     return {"status": "pass", "persist_rate": persist_rate}
