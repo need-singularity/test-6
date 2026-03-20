@@ -10,6 +10,7 @@ from tecs_h.graph.builder import build_subgraph
 from tecs_h.output.formatter import format_hypothesis, save_result
 from tecs_h.evaluator.pipeline import evaluate
 from tecs_h.novelty.filter import filter_novelty
+from tecs_h.verify.cross_check import cross_check
 
 logger = logging.getLogger("tecs_h.loop")
 
@@ -61,8 +62,14 @@ def run_collision_round(entities: list[str], hop: int = 2) -> dict | None:
         logger.info("Hypothesis rejected by novelty filter: %s", novelty_result.get("reason", ""))
         return None
 
+    # Cross-check (2nd verification)
+    cross_result = cross_check(hypothesis, actual)
+    if cross_result.get("confidence_adjustment", 0) > 0:
+        hypothesis["confidence"] = min(1.0, hypothesis.get("confidence", 0) + cross_result["confidence_adjustment"])
+
     return {"hypothesis": hypothesis, "prediction": prediction, "actual": actual,
-            "clashes": clashes, "subgraph": subgraph, "evaluation": eval_result, "novelty": novelty_result}
+            "clashes": clashes, "subgraph": subgraph, "evaluation": eval_result, "novelty": novelty_result,
+            "cross_check": cross_result}
 
 
 def run_batch(seed_groups: list[dict], rounds_per_group: int = 5, results_dir: str = "results") -> list[dict]:
