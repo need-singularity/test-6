@@ -5,10 +5,6 @@ from tecs_h.loop.batch import run_batch
 
 class TestEndToEnd:
     def test_full_pipeline_produces_output(self, mocker, tmp_path):
-        import subprocess
-        import json
-
-        mock_claude = mocker.patch("tecs_h.claude_io.client.subprocess.run")
         prediction = {"beta0": 1, "beta1": 3, "hierarchy_score": 0.8, "max_persistence_h1": 0.5, "reasoning": "test"}
         hypothesis = {"hypothesis": "새로운 구조적 관계", "explanation": "β₁ 차이가 큼",
                       "testable_prediction": "유사 쌍에서도 재현", "involved_entities": ["Q11348", "Q192439"], "confidence": 0.72}
@@ -17,14 +13,17 @@ class TestEndToEnd:
         repackaging = {"is_repackaging": False, "confidence": 0.2, "original_fact": ""}
         call_count = {"n": 0}
 
-        def mock_run_side_effect(*args, **kwargs):
+        def mock_llm_side_effect(prompt, role="default"):
             responses = [prediction, hypothesis, non_topo_hyp, comparison, repackaging]
             idx = min(call_count["n"], len(responses) - 1)
             call_count["n"] += 1
-            return subprocess.CompletedProcess(args=[], returncode=0,
-                stdout=json.dumps(responses[idx], ensure_ascii=False), stderr="")
+            return responses[idx]
 
-        mock_claude.side_effect = mock_run_side_effect
+        # Mock the router's llm_call at each module that uses it
+        mocker.patch("tecs_h.collision.predictor.llm_call", side_effect=mock_llm_side_effect)
+        mocker.patch("tecs_h.collision.resolver.llm_call", side_effect=mock_llm_side_effect)
+        mocker.patch("tecs_h.evaluator.non_topo_baseline.llm_call", side_effect=mock_llm_side_effect)
+        mocker.patch("tecs_h.novelty.filter.llm_call", side_effect=mock_llm_side_effect)
 
         mocker.patch("tecs_h.graph.builder._sparql_query", return_value={
             "results": {"bindings": [

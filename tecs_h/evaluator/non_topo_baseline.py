@@ -1,7 +1,7 @@
 """Filter 3: Non-topological baseline — reject if graph stats alone reach same conclusion."""
 
 import json
-from tecs_h.claude_io.client import claude_call
+from tecs_h.claude_io.router import llm_call
 
 BASELINE_PROMPT = """
 다음 그래프 통계만 보고 가설을 세워봐.
@@ -37,12 +37,12 @@ def filter_non_topo(hypothesis: dict, graph_stats: dict, confidence_threshold: f
         graph_stats=json.dumps(graph_stats, ensure_ascii=False),
         entities=", ".join(entities),
     )
-    baseline = claude_call(baseline_prompt)
+    baseline = llm_call(baseline_prompt, role="non_topo_baseline")
     compare_prompt = COMPARISON_PROMPT.format(
         hypothesis_a=hypothesis.get("hypothesis", ""),
         hypothesis_b=baseline.get("hypothesis", ""),
     )
-    comparison = claude_call(compare_prompt)
+    comparison = llm_call(compare_prompt, role="non_topo_baseline")
     is_same = comparison.get("same_core_claim", False)
     confidence = comparison.get("confidence", 0)
     if is_same and confidence >= confidence_threshold:

@@ -1,6 +1,6 @@
-"""Claude CLI prediction requests for topological invariants."""
+"""Topological invariant prediction via LLM."""
 
-from tecs_h.claude_io.client import claude_call
+from tecs_h.claude_io.router import llm_call
 
 PREDICTION_PROMPT_TEMPLATE = """
 다음 Wikidata 수학 엔티티들의 서브그래프(BFS {hop}홉)에 대해 위상 불변량을 예측해줘.
@@ -22,4 +22,4 @@ def predict(entities: list[str], hop: int = 2) -> dict:
         entities=", ".join(entities),
         hop=hop,
     )
-    return claude_call(prompt)
+    return llm_call(prompt, role="predictor")

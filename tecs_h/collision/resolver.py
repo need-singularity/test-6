@@ -1,7 +1,7 @@
 """Contradiction resolution: generate hypotheses from clashes."""
 
 import json
-from tecs_h.claude_io.client import claude_call
+from tecs_h.claude_io.router import llm_call
 
 RESOLVER_PROMPT_TEMPLATE = """
 너는 Wikidata 수학 엔티티 서브그래프의 위상 불변량을 다음과 같이 예측했어:
@@ -32,4 +32,4 @@ def resolve(prediction: dict, actual: dict, clashes: list[dict]) -> dict:
         actual=json.dumps(actual, ensure_ascii=False, indent=2),
         clashes=json.dumps(clashes, ensure_ascii=False, indent=2),
     )
-    return claude_call(prompt)
+    return llm_call(prompt, role="resolver")

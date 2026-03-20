@@ -36,7 +36,7 @@ class TestFilterNovelty:
     def test_rejects_repackaging(self, mocker):
         mocker.patch("tecs_h.novelty.filter.check_wikidata_relation", return_value=False)
         mocker.patch("tecs_h.novelty.filter.check_trivial_specialization", return_value=False)
-        mock_claude = mocker.patch("tecs_h.novelty.filter.claude_call")
+        mock_claude = mocker.patch("tecs_h.novelty.filter.llm_call")
         mock_claude.return_value = {"is_repackaging": True, "confidence": 0.9, "original_fact": "known theorem"}
         hyp = {"involved_entities": ["Q1", "Q2"], "hypothesis": "test"}
         result = filter_novelty(hyp)
@@ -45,7 +45,7 @@ class TestFilterNovelty:
     def test_passes_novel(self, mocker):
         mocker.patch("tecs_h.novelty.filter.check_wikidata_relation", return_value=False)
         mocker.patch("tecs_h.novelty.filter.check_trivial_specialization", return_value=False)
-        mock_claude = mocker.patch("tecs_h.novelty.filter.claude_call")
+        mock_claude = mocker.patch("tecs_h.novelty.filter.llm_call")
         mock_claude.return_value = {"is_repackaging": False, "confidence": 0.3, "original_fact": ""}
         hyp = {"involved_entities": ["Q1", "Q2"], "hypothesis": "test"}
         result = filter_novelty(hyp)

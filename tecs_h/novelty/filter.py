@@ -3,7 +3,7 @@
 import time
 from itertools import combinations
 import requests
-from tecs_h.claude_io.client import claude_call
+from tecs_h.claude_io.router import llm_call
 
 SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
 
@@ -77,7 +77,7 @@ def filter_novelty(hypothesis: dict) -> dict:
         hypothesis=hypothesis.get("hypothesis", ""),
         entities=", ".join(entities),
     )
-    check = claude_call(prompt)
+    check = llm_call(prompt, role="repackaging")
     if check.get("is_repackaging", False) and check.get("confidence", 0) >= 0.7:
         return {"status": "reject", "reason": f"기존 사실의 재표현: {check.get('original_fact', '')}",
                 "wikidata_duplicate": False, "trivial_specialization": False, "repackaging": True}

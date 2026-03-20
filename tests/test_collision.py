@@ -4,7 +4,7 @@ from tecs_h.collision.predictor import predict, PREDICTION_PROMPT_TEMPLATE
 
 class TestPredict:
     def test_returns_prediction_dict(self, mocker):
-        mock_claude = mocker.patch("tecs_h.collision.predictor.claude_call")
+        mock_claude = mocker.patch("tecs_h.collision.predictor.llm_call")
         mock_claude.return_value = {
             "beta0": 1, "beta1": 5, "hierarchy_score": 0.7,
             "max_persistence_h1": 0.4, "reasoning": "test"
@@ -16,7 +16,7 @@ class TestPredict:
         assert "reasoning" in result
 
     def test_prompt_contains_entities(self, mocker):
-        mock_claude = mocker.patch("tecs_h.collision.predictor.claude_call")
+        mock_claude = mocker.patch("tecs_h.collision.predictor.llm_call")
         mock_claude.return_value = {"beta0": 1, "beta1": 0, "hierarchy_score": 0.5, "max_persistence_h1": 0.1, "reasoning": "x"}
         predict(["Q11348", "Q192439"], hop=2)
         prompt = mock_claude.call_args[0][0]
@@ -71,7 +71,7 @@ from tecs_h.collision.resolver import resolve, RESOLVER_PROMPT_TEMPLATE
 
 class TestResolve:
     def test_returns_hypothesis_dict(self, mocker):
-        mock_claude = mocker.patch("tecs_h.collision.resolver.claude_call")
+        mock_claude = mocker.patch("tecs_h.collision.resolver.llm_call")
         mock_claude.return_value = {
             "hypothesis": "test hypothesis",
             "explanation": "test explanation",
@@ -88,7 +88,7 @@ class TestResolve:
         assert "involved_entities" in result
 
     def test_prompt_includes_clash_data(self, mocker):
-        mock_claude = mocker.patch("tecs_h.collision.resolver.claude_call")
+        mock_claude = mocker.patch("tecs_h.collision.resolver.llm_call")
         mock_claude.return_value = {
             "hypothesis": "h", "explanation": "e",
             "testable_prediction": "t", "involved_entities": [], "confidence": 0.5
