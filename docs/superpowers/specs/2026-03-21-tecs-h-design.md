@@ -92,7 +92,7 @@ TECS-L의 `build_candidate_graph`가 스텁이므로, Python에서 직접 구현
 - 수학 관련 프로퍼티 우선: P279(subclass), P31(instance), P361(part of), P527(has part), P737(influenced by)
 - TECS-L의 `edge_types.yaml` 블랙리스트 적용 (P1343 등 노이즈 제거)
 - 반환값: `{"nodes": [...], "edges": [(u, v), ...], "n_nodes": int}` — TECS-L `compute_topology_from_edges`에 바로 입력 가능
-- 거리 행렬 계산: `compute_topology_from_edges`는 내부적으로 Floyd-Warshall을 실행하므로 별도 거리 행렬 불필요. `compute_hyperbolicity`에 필요한 거리 행렬은 `networkx.floyd_warshall_numpy()`로 edges에서 생성
+- `compute_topology_from_edges`와 `compute_hyperbolicity` 모두 `(edges, n_nodes)`를 받으므로 별도 거리 행렬 변환 불필요
 - Rate limit: 요청 간 1초 딜레이 (Wikidata 정책 준수)
 
 ### 1. 충돌 생성 엔진 (collision/)
@@ -263,7 +263,7 @@ test-4의 `tecs_rs` 패키지를 import. 설치: `cd /Users/ghost/dev/test-4/cra
 
 사용하는 API:
 - `RustEngine.compute_topology_from_edges(edges, n_nodes)` → `{beta0, beta1, long_h1, max_persistence_h1}`
-- `RustEngine.compute_hyperbolicity(distance_matrix)` → `{hierarchy_score}`
+- `RustEngine.compute_hyperbolicity(edges, n_nodes)` → `{hierarchy_score}`
 
 Python 모듈 (test-4의 `python/tecs/`를 sys.path에 추가):
 - `EmergenceDetector.score()` — 6:3:1 emergence 점수. 배치 결과 랭킹에 사용: 가설 목록을 emergence score로 정렬하여 가장 유망한 가설 우선 표시
