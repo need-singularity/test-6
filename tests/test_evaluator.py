@@ -63,3 +63,35 @@ class TestFilterScale:
         ]
         result = filter_scale(actual_topology={"beta0": 1, "beta1": 10}, entities=["Q1"], original_hop=2, max_nodes=300)
         assert result["status"] == "reject"
+
+
+from tecs_h.evaluator.non_topo_baseline import filter_non_topo
+
+
+class TestFilterNonTopo:
+    def test_passes_unique_hypothesis(self, mocker, sample_hypothesis):
+        mock_claude = mocker.patch("tecs_h.evaluator.non_topo_baseline.claude_call")
+        mock_claude.side_effect = [
+            {"hypothesis": "completely different hypothesis about degree distribution"},
+            {"same_core_claim": False, "confidence": 0.9},
+        ]
+        result = filter_non_topo(sample_hypothesis, graph_stats={"avg_degree": 3.2})
+        assert result["status"] == "pass"
+
+    def test_rejects_duplicate_hypothesis(self, mocker, sample_hypothesis):
+        mock_claude = mocker.patch("tecs_h.evaluator.non_topo_baseline.claude_call")
+        mock_claude.side_effect = [
+            {"hypothesis": "basically the same thing"},
+            {"same_core_claim": True, "confidence": 0.85},
+        ]
+        result = filter_non_topo(sample_hypothesis, graph_stats={"avg_degree": 3.2})
+        assert result["status"] == "reject"
+
+    def test_passes_when_comparison_low_confidence(self, mocker, sample_hypothesis):
+        mock_claude = mocker.patch("tecs_h.evaluator.non_topo_baseline.claude_call")
+        mock_claude.side_effect = [
+            {"hypothesis": "somewhat similar"},
+            {"same_core_claim": True, "confidence": 0.5},
+        ]
+        result = filter_non_topo(sample_hypothesis, graph_stats={"avg_degree": 3.2})
+        assert result["status"] == "pass"
