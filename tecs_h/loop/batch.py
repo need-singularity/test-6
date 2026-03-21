@@ -6,7 +6,17 @@ import sys
 from tecs_h.collision.predictor import predict
 from tecs_h.collision.clash import detect_clashes
 from tecs_h.collision.resolver import resolve
-from tecs_h.graph.builder import build_subgraph
+from tecs_h.graph.builder import build_subgraph as wikidata_build_subgraph
+from tecs_h.graph.openalex import build_subgraph as openalex_build_subgraph
+
+import os
+
+def build_subgraph(entities, hop=2, max_nodes=300):
+    """Route to correct graph builder based on TECS_H_GRAPH env var."""
+    source = os.environ.get("TECS_H_GRAPH", "openalex")
+    if source == "wikidata":
+        return wikidata_build_subgraph(entities, hop=hop, max_nodes=max_nodes)
+    return openalex_build_subgraph(entities, hop=hop, max_nodes=max_nodes)
 from tecs_h.output.formatter import format_hypothesis, save_result
 from tecs_h.evaluator.pipeline import evaluate
 from tecs_h.novelty.filter import filter_novelty

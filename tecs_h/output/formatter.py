@@ -46,4 +46,19 @@ def save_result(result: dict, base_dir: str = "results") -> str:
     file_path = os.path.join(dir_path, f"{result['id']}.json")
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
+    # Append to summary log
+    _append_summary(result, base_dir)
     return file_path
+
+
+def _append_summary(result: dict, base_dir: str = "results") -> None:
+    """Append one-line summary to cumulative log file."""
+    log_path = os.path.join(base_dir, "hypothesis_log.tsv")
+    exists = os.path.exists(log_path)
+    with open(log_path, "a", encoding="utf-8") as f:
+        if not exists:
+            f.write("id\tconfidence\tclash_type\tclash_gap\thypothesis\n")
+        hyp_text = result.get("hypothesis", "").replace("\t", " ").replace("\n", " ")[:200]
+        clash_type = result.get("topological_basis", {}).get("clash_type", "")
+        clash_gap = result.get("topological_basis", {}).get("clash_gap", 0)
+        f.write(f"{result['id']}\t{result.get('confidence', 0):.2f}\t{clash_type}\t{clash_gap}\t{hyp_text}\n")
